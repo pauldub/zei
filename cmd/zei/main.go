@@ -11,7 +11,7 @@ import (
 
 	"git.tymate.com/paul/zei/pkg/zei"
 	"github.com/0xAX/notificator"
-	"github.com/currantlabs/ble"
+	"github.com/go-ble/ble"
 	"github.com/mitchellh/cli"
 )
 

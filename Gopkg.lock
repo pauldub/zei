@@ -21,7 +21,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/currantlabs/ble"
+  name = "github.com/go-ble/ble"
   packages = [
     ".",
     "darwin",
@@ -34,7 +34,7 @@
     "linux/hci/evt",
     "linux/hci/socket"
   ]
-  revision = "c1d21c164cf83d3360fd5abd73a3405cb588c06c"
+  revision = "c8fd54017fb3278c4d9fcdbf7295c3e01fd26e56"
 
 [[projects]]
   branch = "master"
@@ -103,12 +103,6 @@
 
 [[projects]]
   branch = "master"
-  name = "golang.org/x/net"
-  packages = ["context"]
-  revision = "892bf7b0c6e2f93b51166bf3882e50277fa5afc6"
-
-[[projects]]
-  branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
   revision = "bcaab34b51dab6217ab117c5469d74b2ac1b1ab2"
@@ -116,6 +110,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ffc48af413d3da85e0d38ca3dfd9290e4616b5d2aa62bd291c33d82c68aea7ef"
+  inputs-digest = "58315a1355435de813ecd6c147dfbaf421bc567b25eb9da9f49ed3df04e667f4"
   solver-name = "gps-cdcl"
   solver-version = 1

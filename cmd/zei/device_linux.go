@@ -3,8 +3,8 @@
 package main
 
 import (
-	"github.com/currantlabs/ble"
-	"github.com/currantlabs/ble/linux"
+	"github.com/go-ble/ble"
+	"github.com/go-ble/ble/linux"
 )
 
 func getDevice() (ble.Device, error) {
