@@ -1,0 +1,9 @@
+FROM ARG_FROM
+
+MAINTAINER Foo <foo@tymate.com>
+
+RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/* && update-ca-certificates
+
+ADD ARG_BIN /ARG_BIN
+
+USER nobody:nobody
