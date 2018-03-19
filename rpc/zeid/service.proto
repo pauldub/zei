@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package zei.zeid;
+option go_package = "zeid";
+
+service Zei {
+  rpc ListActivities(ListActivitiesReq) returns (ListActivitiesResp);
+  rpc CurrentActivity(CurrentActivityReq) returns (CurrentActivityResp);
+  rpc AssignActivity(AssignActivityReq) returns (AssignActivityResp);
+}
+
+message Activity {
+  string id = 1;
+  string name = 2;
+  string color = 3;
+  string integration = 4;
+  int64  device_side = 5;
+}
+
+message ListActivitiesReq {
+}
+
+message ListActivitiesResp {
+  repeated Activity activities = 1;
+  string current_activity_id = 2;
+}
+
+message CurrentActivityReq {
+}
+
+message CurrentActivityResp {
+  Activity activity = 1;
+  string start_time = 2;
+  bool is_idle = 3;
+}
+
+message AssignActivityReq {
+  string activity_id = 1;
+}
+
+message AssignActivityResp {
+}

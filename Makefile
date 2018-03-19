@@ -1,7 +1,7 @@
 # The binaries to build (just the basename), separate with spaces to build more binaries.
 PROJECT := zei
 
-BIN := zei
+BIN := zeid zei-tray
 
 # This repo's root import path (under GOPATH).
 PKG := git.tymate.com/paul/zei
@@ -44,7 +44,17 @@ endif
 
 IMAGE := $(REGISTRY)/$(PROJECT)-$(ARCH)
 
-BUILD_IMAGE ?= golang:1.10-alpine
+BUILD_IMAGE ?= golang:1.10-gtk3
+
+rpc/zeid/service.pb.go: rpc/zeid/service.proto
+	retool do protoc --proto_path=$(GOPATH)/src:. --twirp_out=. --go_out=. ./rpc/zeid/service.proto
+
+gen-proto: rpc/zeid/service.pb.go 
+
+tools:
+	retool sync
+
+gen: tools gen-proto
 
 # If you want to build all binaries, see the 'all-build' rule.
 # If you want to build all containers, see the 'all-container' rule.
@@ -68,7 +78,7 @@ all-push: $(addprefix push-, $(ALL_ARCH))
 
 build: $(BINS)
 
-$(BINS): build-dirs
+$(BINS): build-dirs gen
 	@echo "building: $@"
 	@docker run                                                             \
 	    --rm                                                                \
@@ -160,4 +170,4 @@ container-clean:
 	rm -rf .container-* .dockerfile-* .push-*
 
 bin-clean:
-	rm -rf .go bin
+	rm -rf .go .cache bin

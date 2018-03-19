@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 const (
 	zeiAPIBaseURL = "https://api.timeular.com/api/v2"
+	TimeFormat    = "2006-01-02T15:04:05.000"
 )
 
 func apiURL(path string) string {
@@ -87,6 +89,37 @@ type Activity struct {
 	DeviceSide  int    `json:"deviceSide"`
 }
 
+func (c *Client) AssignActivity(
+	ctx context.Context,
+	token string,
+	activityID string,
+	deviceSide int,
+) (*Activity, error) {
+	req, err := http.NewRequest(http.MethodPost, apiURL(fmt.Sprintf("/activities/%s/device-side/%d", activityID, deviceSide)), nil)
+	if err != nil {
+		return nil, err
+	}
+	c.authorize(req, token)
+
+	res, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode >= http.StatusBadRequest {
+		return nil, fmt.Errorf("ZEI API response status %d", res.StatusCode)
+	}
+
+	var activity Activity
+	err = json.NewDecoder(res.Body).Decode(&activity)
+	if err != nil {
+		return nil, err
+	}
+
+	return &activity, nil
+}
+
 type activitiesResponse struct {
 	Activities []Activity `json:"activities"`
 }
@@ -107,6 +140,7 @@ func (c *Client) Activities(
 		return activities, err
 	}
 	c.authorize(req, accessToken)
+	req.Header.Set("Content-Type", "application/json")
 
 	res, err := c.http.Do(req)
 	if err != nil {
@@ -122,24 +156,90 @@ func (c *Client) Activities(
 	return apiResponse.Activities, nil
 }
 
+// Tracking is the time tracking information of an activity
+type Tracking struct {
+	Activity  Activity `json:"activity"`
+	StartedAt string   `json:"startedAt"`
+}
+
+type currentTrackingResponse struct {
+	CurrentTracking Tracking
+}
+
+// CurrentTracking returns the current time tracking
+func (c *Client) CurrentTracking(
+	ctx context.Context,
+	accessToken string,
+) (*Tracking, error) {
+	var (
+		apiResponse currentTrackingResponse
+		err         error
+	)
+
+	req, err := http.NewRequest(
+		http.MethodGet,
+		apiURL("/tracking"),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	c.authorize(req, accessToken)
+
+	res, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	err = json.NewDecoder(res.Body).Decode(&apiResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &apiResponse.CurrentTracking, nil
+}
+
+type startTrackingRequest struct {
+	StartedAt string `json:"startedAt"`
+}
+
 // StartTracking starts time tracking of an activity
 func (c *Client) StartTracking(
 	ctx context.Context,
 	accessToken string,
 	activityID string,
+	startedAt time.Time,
 ) error {
-	req, err := http.NewRequest(http.MethodPost, apiURL(fmt.Sprintf("/tracking/%s/start", activityID)), nil)
+	reqBody, err := json.Marshal(&startTrackingRequest{
+		StartedAt: startedAt.UTC().Format(TimeFormat),
+	})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		apiURL(fmt.Sprintf("/tracking/%s/start", activityID)),
+		bytes.NewReader(reqBody),
+	)
 	if err != nil {
 		return err
 	}
 	c.authorize(req, accessToken)
+	req.Header.Set("Content-Type", "application/json")
 
-	_, err = c.http.Do(req)
+	res, err := c.http.Do(req)
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
 	return nil
+}
+
+type stopTrackingRequest struct {
+	StoppedAt string `json:"stoppedAt"`
 }
 
 // StopTracking stops time tracking of an activity
@@ -147,17 +247,31 @@ func (c *Client) StopTracking(
 	ctx context.Context,
 	accessToken string,
 	activityID string,
+	stoppedAt time.Time,
 ) error {
-	req, err := http.NewRequest(http.MethodPost, apiURL(fmt.Sprintf("/tracking/%s/stop", activityID)), nil)
+	reqBody, err := json.Marshal(&stopTrackingRequest{
+		StoppedAt: stoppedAt.UTC().Format(TimeFormat),
+	})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		apiURL(fmt.Sprintf("/tracking/%s/stop", activityID)),
+		bytes.NewReader(reqBody),
+	)
 	if err != nil {
 		return err
 	}
 	c.authorize(req, accessToken)
+	req.Header.Set("Content-Type", "application/json")
 
-	_, err = c.http.Do(req)
+	res, err := c.http.Do(req)
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
 	return nil
 }

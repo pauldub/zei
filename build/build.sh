@@ -16,7 +16,7 @@
 
 set -o errexit
 set -o nounset
-set -o pipefail
+# set -o pipefail
 
 if [ -z "${PKG}" ]; then
     echo "PKG must be set"
@@ -31,7 +31,7 @@ if [ -z "${VERSION}" ]; then
     exit 1
 fi
 
-export CGO_ENABLED=0
+export CGO_ENABLED=1
 export GOARCH="${ARCH}"
 
 go install                                                         \

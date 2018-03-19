@@ -2,169 +2,86 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
-	"strings"
-	"sync"
+	"time"
 
-	"git.tymate.com/paul/zei/pkg/zei"
-	"github.com/0xAX/notificator"
-	"github.com/go-ble/ble"
-	"github.com/mitchellh/cli"
+	"git.tymate.com/paul/zei/rpc/zeid"
+	"github.com/alecthomas/kingpin"
 )
 
 var (
-	orientationService        = "c7e70010c84711e681758c89a55d403c"
-	orientationCharacteristic = ble.MustParse("c7e70012c84711e681758c89a55d403c")
+	app        = kingpin.New("zei", "A ZEI Timeular command line client.")
+	apiAddress = app.Flag("api", "Address to the API server.").Default("http://localhost:8594").String()
 
-	zeiSerialNumber = flag.String("serial-number", "", "ZEI device serial number")
-	zeiAPIKey       = flag.String("api-key", "", "ZEI api key")
-	zeiAPISecret    = flag.String("api-secret", "", "ZEI api secret")
-	showSide        = flag.Bool("show-side", false, "Show activity side in notifications")
+	status         = app.Command("status", "Prints Timeular status on stdout.")
+	listActivities = app.Command("activities", "List Timeular activities.")
+
+	assignActivity   = app.Command("assign", "Assigns an activity to a device side.")
+	assignActivityID = assignActivity.Flag("id", "The ID of the activity to assign.").Required().String()
 )
 
 func main() {
-	var (
-		ctx = context.Background()
-		ui  = cli.BasicUi{
-			Reader:      os.Stdin,
-			Writer:      os.Stdout,
-			ErrorWriter: os.Stderr,
+	command, err := app.Parse(os.Args[1:])
+	if err != nil {
+		log.Printf("failed to parse arguments: %+v", err)
+		os.Exit(1)
+	}
+
+	client := zeid.NewZeiProtobufClient(*apiAddress, &http.Client{})
+
+	switch kingpin.MustParse(command, err) {
+	case status.FullCommand():
+		ctx := context.Background()
+
+		currentActivity, err := client.CurrentActivity(ctx, &zeid.CurrentActivityReq{})
+		logError("failed to request current activity", err)
+
+		startTime, err := time.Parse(time.RFC3339, currentActivity.StartTime)
+		logError("failed to parse startTime", err)
+
+		if currentActivity.IsIdle {
+			fmt.Println("Not tracking anything!")
+			os.Exit(0)
 		}
 
-		connMutex   sync.Mutex
-		isConnected bool
+		fmt.Printf("Tracking %s since %s\n", currentActivity.Activity.Name, time.Since(startTime).Truncate(time.Second).String())
+		os.Exit(0)
+	case listActivities.FullCommand():
+		ctx := context.Background()
 
-		apiClient = zei.NewClient()
-		notify    = notificator.New(notificator.Options{
-			AppName: "ZEI",
+		res, err := client.ListActivities(ctx, &zeid.ListActivitiesReq{})
+		logError("failed to request activities", err)
+
+		fmt.Println("Activities:")
+
+		for _, a := range res.Activities {
+			if res.CurrentActivityId == a.Id {
+				fmt.Printf("%s - %s (on top)\n", a.Id, a.Name)
+			} else {
+				fmt.Printf("%s - %s\n", a.Id, a.Name)
+			}
+		}
+
+		os.Exit(0)
+	case assignActivity.FullCommand():
+		ctx := context.Background()
+
+		_, err := client.AssignActivity(ctx, &zeid.AssignActivityReq{
+			ActivityId: *assignActivityID,
 		})
-	)
+		logError("failed to assign activity", err)
 
-	flag.Parse()
+		fmt.Printf("Activity %s was succesfully assigned!\n", *assignActivityID)
+		os.Exit(0)
+	}
+}
 
-	accessToken, err := apiClient.DeveloperSignIn(ctx, *zeiAPIKey, *zeiAPISecret)
+func logError(message string, err error) {
 	if err != nil {
-		log.Fatalf("failed to sign-in to ZEI API: %+v", err)
+		log.Printf("%s: %+v", message, err)
+		os.Exit(1)
 	}
-
-	activities, err := apiClient.Activities(ctx, accessToken)
-	if err != nil {
-		log.Fatalf("failed to query ZEI activities: %+v", err)
-	}
-
-	sideActivities := map[int]zei.Activity{
-		0: {
-			Name: "Idle",
-		},
-	}
-
-	for _, a := range activities {
-		sideActivities[a.DeviceSide] = a
-	}
-
-	dev, err := getDevice()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ble.SetDefaultDevice(dev)
-
-	conn, err := ble.Connect(ctx, func(a ble.Advertisement) bool {
-		connMutex.Lock()
-		defer connMutex.Unlock()
-
-		isZei := strings.ToUpper(a.LocalName()) == strings.ToUpper("Timeular ZEI")
-		if !isZei || isConnected {
-			return false
-		}
-
-		serialNumber := string(a.ManufacturerData())
-		if *zeiSerialNumber != "" {
-			return serialNumber == *zeiSerialNumber
-		}
-
-		answer, err := ui.Ask(fmt.Sprintf("Connect to ZEI device %q? (y/n)", serialNumber))
-		if err != nil {
-			ui.Error(err.Error())
-			os.Exit(1)
-			return false
-		}
-
-		if strings.HasPrefix(answer, "y") {
-			isConnected = true
-			return true
-		}
-
-		return false
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.CancelConnection()
-
-	ui.Info("connection to device successful")
-
-	profile, err := conn.DiscoverProfile(true)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	orientation, ok := profile.Find(ble.NewCharacteristic(orientationCharacteristic)).(*ble.Characteristic)
-	if !ok {
-		log.Println("could not fiend orientation characteristic")
-		return
-	}
-
-	currentOrientation, err := conn.ReadCharacteristic(orientation)
-	if err != nil {
-		log.Fatal(err)
-	}
-	currentActivity := sideActivities[int(currentOrientation[0])]
-
-	err = conn.Subscribe(orientation, true, func(val []byte) {
-		newActivity, ok := sideActivities[int(val[0])]
-		if !ok {
-			return
-		}
-
-		if newActivity.ID == currentActivity.ID {
-			return
-		}
-
-		notificationText := newActivity.Name
-		if *showSide {
-			notificationText = fmt.Sprintf("%s (%d)", notificationText, newActivity.DeviceSide)
-		}
-
-		notificationTitle := "Starting activity"
-
-		if newActivity.Name == "Idle" {
-			notificationText = currentActivity.Name
-			notificationTitle = "Stopping activity"
-			err = apiClient.StopTracking(ctx, accessToken, currentActivity.ID)
-			if err != nil {
-				log.Printf("failed to stop tracking of current activity: %+v", err)
-			}
-		} else {
-			err = apiClient.StartTracking(ctx, accessToken, newActivity.ID)
-			if err != nil {
-				log.Printf("failed to start tracking of new activity: %+v", err)
-			}
-		}
-
-		err := notify.Push(notificationTitle, notificationText, "", notificator.UR_NORMAL)
-		if err != nil {
-			log.Printf("failed to send notification: %+v", err)
-		}
-
-		currentActivity = newActivity
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	<-conn.Disconnected()
 }

@@ -8,6 +8,27 @@
   revision = "88d57ee9043ba88d6a62e437fa15dda1ca0d2b59"
 
 [[projects]]
+  name = "github.com/alecthomas/kingpin"
+  packages = ["."]
+  revision = "947dcec5ba9c011838740e680966fd7087a71d0d"
+  version = "v2.2.6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/alecthomas/template"
+  packages = [
+    ".",
+    "parse"
+  ]
+  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/alecthomas/units"
+  packages = ["."]
+  revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
+
+[[projects]]
   branch = "master"
   name = "github.com/armon/go-radix"
   packages = ["."]
@@ -18,6 +39,60 @@
   packages = ["."]
   revision = "4aabc24848ce5fd31929f7d1e4ea74d3709c14cd"
   version = "v0.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/context"
+  packages = ["."]
+  revision = "624d99b1798d7c5375ea1d3ca4c5b04d58f7c775"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/errors"
+  packages = ["."]
+  revision = "e9c0296368b736086adb20832549567064224854"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/filepersist"
+  packages = ["."]
+  revision = "c5f0cd24e7991579ba6f5f1bd20a1ad2c9f06cd4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/golog"
+  packages = ["."]
+  revision = "cca714f7feb5df8e455f409b549d384441ac4578"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/hex"
+  packages = ["."]
+  revision = "083fba3033ad473db3dd31c9bb368473d37581a7"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/hidden"
+  packages = ["."]
+  revision = "d52a649ab33af200943bb599898dbdcfdbc94cb7"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/ops"
+  packages = ["."]
+  revision = "37353306c90844c8e0591956f56611f46299d202"
+
+[[projects]]
+  name = "github.com/getlantern/stack"
+  packages = ["."]
+  revision = "ac4c579c437a23e1a15814c867ccb82122fb383b"
+  version = "v1.5.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/systray"
+  packages = ["."]
+  revision = "fe4b1c6bb216a485a73414ce55047ec7ce3a9766"
 
 [[projects]]
   branch = "master"
@@ -35,6 +110,16 @@
     "linux/hci/socket"
   ]
   revision = "c8fd54017fb3278c4d9fcdbf7295c3e01fd26e56"
+
+[[projects]]
+  name = "github.com/golang/protobuf"
+  packages = [
+    "jsonpb",
+    "proto",
+    "ptypes/struct"
+  ]
+  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -79,6 +164,12 @@
   revision = "518dc677a1e1222682f4e7db06721942cb8e9e4c"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/oxtoacart/bpool"
+  packages = ["."]
+  revision = "4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -102,6 +193,16 @@
   revision = "efeac611681b89806d673dfbd8fc1690ca6bd093"
 
 [[projects]]
+  name = "github.com/twitchtv/twirp"
+  packages = [
+    ".",
+    "ctxsetters",
+    "internal/contextkeys"
+  ]
+  revision = "1e149ba374383a4b74e836f6c9e54fede6b09c61"
+  version = "v5.3.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
@@ -110,6 +211,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "58315a1355435de813ecd6c147dfbaf421bc567b25eb9da9f49ed3df04e667f4"
+  inputs-digest = "d3217773e475cffc194b55b2c8117a7a28669764d2dbe423add919552fbcb882"
   solver-name = "gps-cdcl"
   solver-version = 1
