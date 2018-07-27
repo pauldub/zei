@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"git.tymate.com/paul/zei/rpc/zeid"
+	"github.com/pauldub/zei/rpc/zeid"
 	"github.com/getlantern/systray"
 )
 

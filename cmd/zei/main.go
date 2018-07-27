@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"git.tymate.com/paul/zei/rpc/zeid"
+	"github.com/pauldub/zei/rpc/zeid"
 	"github.com/alecthomas/kingpin"
 )
 

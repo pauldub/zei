@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"git.tymate.com/paul/zei/pkg/zei"
-	"git.tymate.com/paul/zei/pkg/zeidsvc"
-	"git.tymate.com/paul/zei/rpc/zeid"
+	"github.com/pauldub/zei/pkg/zei"
+	"github.com/pauldub/zei/pkg/zeidsvc"
+	"github.com/pauldub/zei/rpc/zeid"
 	"github.com/0xAX/notificator"
 	"github.com/go-ble/ble"
 	"github.com/mitchellh/cli"

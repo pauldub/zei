@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"git.tymate.com/paul/zei/pkg/zei"
-	"git.tymate.com/paul/zei/rpc/zeid"
+	"github.com/pauldub/zei/pkg/zei"
+	"github.com/pauldub/zei/rpc/zeid"
 	"github.com/go-ble/ble"
 	"github.com/pkg/errors"
 )

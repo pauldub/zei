@@ -4,7 +4,7 @@ PROJECT := zei
 BIN := zeid zei-tray
 
 # This repo's root import path (under GOPATH).
-PKG := git.tymate.com/paul/zei
+PKG := github.com/pauldub/zei
 
 # Where to push the docker image.
 REGISTRY ?= registry.tymate.com/go/go-build-template
